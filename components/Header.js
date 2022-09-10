@@ -31,6 +31,28 @@ export default function Header({ itemHandler }) {
   const [fontsLoadedFlag, setFontsLoadedFlag] = useState(false);
 
 
+  const removeDuplicates = array => {
+
+    var temp = [];
+    const modified = array.filter(item => { 
+    
+      const duplicate = temp.includes(item.value);
+
+      if (!duplicate) {
+
+        temp.push(item.value);
+        return true;
+      }
+
+      return false;
+
+    });
+
+    return modified;
+
+  }
+
+
   useEffect(() => {
 
       populateArray();
@@ -40,7 +62,7 @@ export default function Header({ itemHandler }) {
 
   async function populateArray() {
 
-    await fetch(constants.dataUrl, {method: "GET", headers: {"Content-Type": "application/json","Accept": "application/json"} })
+    await fetch(constants.dataUrl, {method: "GET", headers: {"Content-Type": "application/json", "Accept": "application/json"} })
                .then(response => response.json())
                .then(array => setData(array))
                .catch(error => console.error("Error: ", error));
@@ -65,49 +87,16 @@ export default function Header({ itemHandler }) {
     return () => {
 
       unmounted = true;
-
     }
 
   }, [selected]);
 
-  // I understand that it's bad practice to set the key value of an object equal to it's property value but unfortunately there's a bug in the dropdown menu package where the the returned value from the "selected" state is actually equal to the index number of each menu and not the value property
-  const prices = [{key: "Ascending order", value: "Ascending order" }, {key: "Decending order", value: "Decending order"}];
-  const pharmacies = data.map(({orderStatus, orderTotal, ...keep}) => {return {key: keep.orderStatus, value: keep.pharmacyName}});
-  const indicators = data.map(({pharmacyName, orderTotal, ...keep}) => {return {key: keep.orderStatus, value: keep.orderStatus}});
-  var temp = [];
-
-  const statuses = indicators.filter(item => { 
-  
-    const duplicate = temp.includes(item.value);
-
-    if (!duplicate) {
-
-      temp.push(item.value);
-      return true;
-
-    }
-
-    return false;
-
-  });
-
-  var temp = [];
-
-  const clinics = pharmacies.filter(item => { 
-  
-    const duplicate = temp.includes(item.value);
-
-    if (!duplicate) {
-
-      temp.push(item.value);
-      return true;
-
-    }
-
-    return false;
-
-  });
-
+  // I understand that it's bad practice to set the key value of an object equal to it's property value but unfortunately there's a bug in the dropdown menu package where the returned value from the "selected" state is actually equal to the index number of each menu and not the value property
+  const prices = [{key: "Ascending order", value: "Ascending order" }, {key: "Descending order", value: "Descending order"}];
+  const clinics = data.map(({orderStatus, orderTotal, ...keep}) => {return {key: keep.orderStatus, value: keep.pharmacyName}});
+  const statuses = data.map(({pharmacyName, orderTotal, ...keep}) => {return {key: keep.orderStatus, value: keep.orderStatus}});
+  const pharmacies = removeDuplicates(clinics);
+  const indicators = removeDuplicates(statuses);
 
   if (fontsLoadedFlag) {
 
@@ -135,19 +124,19 @@ export default function Header({ itemHandler }) {
 
             <View style={styles.nameSearchDropdownContainer}>
 
-              <SelectList data={clinics} 
+              <SelectList data={pharmacies} 
                           setSelected={setSelected} 
                           inputStyles={{ fontFamily:"montserrat" }} 
                           search={true} 
-                          dropdownStyles={{ backgroundColor: constants.statusPink, borderColor: "#000" }} 
-                          dropdownTextStyles={{ fontFamily:"montserrat", color: "#fff" }} 
+                          dropdownStyles={{ borderColor: "#000" }} 
+                          dropdownTextStyles={{ fontFamily:"montserrat" }} 
                           placeholder="Search by pharmacy name" />
 
             </View>
 
-            <View style={styles.statusFilterContainer}>
+            <View style={styles.statusFilterDropdownContainer}>
 
-              <SelectList data={statuses} 
+              <SelectList data={indicators} 
                           setSelected={setSelected} 
                           inputStyles={{ fontFamily:"montserrat" }} 
                           search={false} 
@@ -249,7 +238,7 @@ const styles = StyleSheet.create({
     marginTop: 5
   },
 
-  statusFilterContainer: {
+  statusFilterDropdownContainer: {
 
     marginBottom: 10
   },
